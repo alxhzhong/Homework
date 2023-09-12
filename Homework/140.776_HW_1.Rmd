@@ -52,9 +52,6 @@ Let's make a histogram of the rating scores:
 chocolate %>% 
   ggplot(aes(x = rating)) +
     geom_histogram(bins = 15)
-
-chocolate$rating %>% 
-  hist(breaks = seq(1, 4, by = (3/25)))
 ```
 
 I also chose **15** as the number of bins. Since rating values are discrete with increments of every 0.25 (and range from 1 to 4), there are really only 13 possible values that the rating variable can take on. With a higher number of bins, the histogram starts to show gaps between possible values that make the histogram look weird. Being the closest to 13 without aggregating too much data (and thus obscuring some of the distribution of the ratings), I chose 15.
@@ -69,7 +66,7 @@ chocolate %>%
   arrange(desc(count))
 ```
 
-It looks like Venezuela, Peru, the Dominican Republic, Ecuador, and Madagascar are the countries contributing beans to the highest number of chocolate bars.
+It looks like **Venezuela, Peru, the Dominican Republic, Ecuador, and Madagascar** are the countries contributing beans to the highest number of chocolate bars.
 
 ## Q3
 ```{r}
@@ -343,12 +340,12 @@ My customizations are:
 
 1. I **omitted the title/subtitle/caption**. Adding descriptive text would help to summarize findings and provide more context to the figure.
 2. I used **the wrong geom/type of chart**. Using a more appropriate geom would convey plot information better.
-3. I *didn't use descriptive axis labels**. Changing axis labels from variable names would enhance figure readability.
-4. I used *muted colors for data** and *bright colors for the plot background**. Using colors that make data trends stand out more would enhance figure readability.
-5. I used *crowded axis labels**. Reducing axis labels when appropriate would help to reduce overcrowding.
-6. I had a *crowded plot** with many lines. Simplifying the plot (fewer lines) would enhance the message of each plot within the figure.
-7. I used *dark gridlines**. Using light or no gridlines would help to draw focus to data.
-8. I used an *unintuitive y-axis scale** (probit). Using a more reasonable axis transformation (when appropriate) would enhance figure readability.
+3. I **didn't use descriptive axis labels**. Changing axis labels from variable names would enhance figure readability.
+4. I used **muted colors for data** and **bright colors for the plot background**. Using colors that make data trends stand out more would enhance figure readability.
+5. I used **crowded axis labels**. Reducing axis labels when appropriate would help to reduce overcrowding.
+6. I had a **crowded plot** with many lines. Simplifying the plot (fewer lines) would enhance the message of each plot within the figure.
+7. I used **dark gridlines**. Using light or no gridlines would help to draw focus to data.
+8. I used an **unintuitive y-axis scale** (probit). Using a more reasonable axis transformation (when appropriate) would enhance figure readability.
 
 
 ## Part 6
@@ -382,6 +379,7 @@ Here are the improvements I made:
 7. I **converted violin to joy/ridgeplots**. Ridgeplots are less controversial and convey the same information; plus, the stacking of ridgeplots allows densities to be more easily comparable.
 
 
+## R Session Information
 ```{r}
 options(width = 120)
 sessioninfo::session_info()
