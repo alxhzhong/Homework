@@ -384,4 +384,3 @@ Here are the improvements I made:
 options(width = 120)
 sessioninfo::session_info()
 ```
-
