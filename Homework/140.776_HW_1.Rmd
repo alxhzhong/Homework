@@ -332,7 +332,8 @@ choc_feature_means %>%
   theme(
     panel.background = element_rect(fill = "yellow"),
     panel.grid = element_line(color = "black", linetype = "longdash", linewidth = 0.05),
-    legend.position = "right"
+    legend.position = "right",
+    legend.direction = "horizontal"
     )
 ```
 
@@ -346,6 +347,7 @@ My customizations are:
 6. I had a **crowded plot** with many lines. Simplifying the plot (fewer lines) would enhance the message of each plot within the figure.
 7. I used **dark gridlines**. Using light or no gridlines would help to draw focus to data.
 8. I used an **unintuitive y-axis scale** (probit). Using a more reasonable axis transformation (when appropriate) would enhance figure readability.
+9. I used an **inappropriately-sized legend**. Placing the legend in an appropriate location at a readable yet small size will draw more attention to the trends presented in the plot.
 
 
 ## Part 6
