@@ -1,0 +1,389 @@
+---
+title: "HW_1"
+output: html_document
+date: "2023-09-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning = FALSE, message = FALSE}
+# Load necessary packages/datasets
+library(tidyverse)
+library(here)
+library(ggridges)
+library(viridis)
+
+# tests if a directory named "data" exists locally
+if (!dir.exists(here("data"))) {
+    dir.create(here("data"))
+}
+
+# saves data only once (not each time you knit a R Markdown)
+# code from Dr. Collado =-Torres (in Project 1)
+if (!file.exists(here("data", "chocolate.RDS"))) {
+    url_csv <- "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-18/chocolate.csv"
+    chocolate <- readr::read_csv(url_csv)
+
+    # save the file to RDS objects
+    saveRDS(chocolate, file = here("data", "chocolate.RDS"))
+}
+```
+
+```{r}
+# load chocolate data
+chocolate <- readRDS(here("data", "chocolate.RDS"))
+as_tibble(chocolate)
+```
+
+# Preliminary data exploration
+
+```{r}
+glimpse(chocolate)
+```
+
+# Exploring data
+
+## Q1
+Let's make a histogram of the rating scores:
+
+```{r}
+chocolate %>% 
+  ggplot(aes(x = rating)) +
+    geom_histogram(bins = 15)
+
+chocolate$rating %>% 
+  hist(breaks = seq(1, 4, by = (3/25)))
+```
+
+I also chose **15** as the number of bins. Since rating values are discrete with increments of every 0.25 (and range from 1 to 4), there are really only 13 possible values that the rating variable can take on. With a higher number of bins, the histogram starts to show gaps between possible values that make the histogram look weird. Being the closest to 13 without aggregating too much data (and thus obscuring some of the distribution of the ratings), I chose 15.
+
+## Q2
+Here's a look at the number of bars produced by country of bean origin:
+
+```{r}
+chocolate %>% 
+  group_by(country_of_bean_origin) %>% 
+  summarize(count = n()) %>% 
+  arrange(desc(count))
+```
+
+It looks like Venezuela, Peru, the Dominican Republic, Ecuador, and Madagascar are the countries contributing beans to the highest number of chocolate bars.
+
+## Q3
+```{r}
+chocolate %>% 
+  filter(country_of_bean_origin == "Ecuador") %>% 
+  summarize(
+      mean = mean(rating),
+      sd = sd(rating),
+      total = n()
+            )
+```
+For the **219 ratings** of Ecuadorian beans, the **average rating was 3.16** with a **standard deviation of 0.51**.
+
+## Q4
+```{r}
+chocolate %>% 
+  filter(country_of_bean_origin == "Ecuador") %>% 
+  group_by(company_manufacturer) %>% 
+  summarize(avg_rating = mean(rating)) %>% 
+  arrange(desc(avg_rating))
+```
+
+Amano, Benoit Nihant, Beschle, Durci, and The Smooth Chocolator make the best chocolate from Ecuadorian beans, with an average rating of 4.
+
+## Question 5
+```{r}
+chocolate %>% 
+  group_by(country_of_bean_origin) %>% 
+  summarize(avg_rating = mean(rating)) %>% 
+  arrange(desc(avg_rating)) %>% 
+  head(3)
+```
+
+The top 3 countries with the highest average ratings are **Tobago, China, and Sao Tome & Principe**.
+
+## Question 6
+```{r}
+chocolate %>% 
+  group_by(country_of_bean_origin) %>% 
+  summarize(
+    avg_rating = mean(rating),
+    count = n()
+    )%>% 
+  arrange(desc(avg_rating)) %>% 
+  filter(count >= 10) %>% 
+  head(3)
+```
+
+Removing countries of bean origin with less than 10 chocolate bar reviews, the new top 3 countries are **Solomon Islands, Congo, and Cuba**.
+
+## Question 7
+```{r}
+# step 1
+# extract vector of countries of bean origin with <50 reviews
+under50_reviews <- chocolate %>% 
+  group_by(country_of_bean_origin) %>% 
+  summarise(count = n()) %>% 
+  filter(count < 50) %>% 
+  select(country_of_bean_origin) %>% 
+  pull()
+
+# alternatively, without identifying the list of countries w/ <50 reviews,
+choc_groups <- chocolate %>% 
+  group_by(country_of_bean_origin) %>% 
+  filter(n() >= 50) %>% 
+  ungroup()
+```
+
+
+```{r}
+# step 2
+# create perc_group to group chocolate percentages
+choc_groups <- chocolate %>% 
+  filter(!country_of_bean_origin %in% under50_reviews) %>% 
+  mutate(
+    perc_group = substr(cocoa_percent, 1, 2),
+    perc_group = factor(case_when(
+      perc_group < 60 ~ "<60%",
+      perc_group >= 60 & perc_group < 70 ~ ">=60 to <70%",
+      perc_group >= 70 & perc_group < 90 ~ ">=70 to <90%",
+      perc_group >= 90 ~ ">=90%"
+    )))
+```
+
+
+```{r}
+# step 3
+# relevel perc_group in "numerical" order
+choc_groups <- choc_groups %>% 
+  mutate(perc_group = forcats::fct_relevel(choc_groups$perc_group, c("<60%", ">=60 to <70%", ">=70 to <90%", ">=90%")))
+```
+
+
+```{r fig.width=10, fig.height=14}
+# step 4
+# boxplot of rating by country/percentage group
+choc_groups %>% 
+  ggplot(mapping = aes(x = perc_group, y = rating)) +
+  geom_boxplot() + 
+  facet_wrap(~country_of_bean_origin, ncol = 4)
+```
+
+The highest-rated category is generally the >=70% to <90% category, though the >=60% to <70% category is similarly rated. The pattern of increased rating as chocolate percentage increases (up to the third category) generally holds, but there are a few exceptions (e.g. Madagascar, Tanzania)
+
+# Part 2
+
+```{r warning = FALSE}
+# load gapminder data
+library(gapminder)
+str(gapminder)
+```
+
+Looking at the gapminder data, we'll take the unique combinations of country and continent to add the continent name to the chocolate dataset.
+
+```{r}
+# task 1
+# joining country/continent from gapminder into chocolate
+choc_withcont <- gapminder %>% 
+  select(country, continent) %>% 
+  distinct(country, continent) %>% 
+  right_join(chocolate, by = c("country" = "country_of_bean_origin"))
+```
+
+```{r}
+# Let's check for missing continents
+choc_withcont %>% 
+  filter(is.na(continent)) %>% 
+  select(country, continent) %>% 
+  distinct(country, continent)
+```
+
+```{r}
+# filling in missing continents by hand
+choc_withcont <- choc_withcont %>% 
+  mutate(
+    # combining different regions/names for a single country
+    country = case_when(
+      country %in% c("Sumatra", "Sulawesi") ~ "Indonesia",
+      country %in% c("Sao Tome", "Sao Tome & Principe", "Principe") ~ "Sao Tome & Principe",
+      country %in% c("Trinidad", "Tobago") ~ "Trinidad & Tobago",
+      .default = country
+    ),
+    continent = case_when(
+      country %in% c("Fiji", "Papua New Guinea", "Vanuatu", "Solomon Islands", "Samoa") ~ "Oceania",
+      country %in% c("Burma", "Indonesia") ~ "Asia",
+      country %in% c("Sao Tome & Principe", "Congo", "Ivory Coast", "DR Congo") ~ "Africa",
+      country %in% c("Trinidad & Tobago", "Belize", "Grenada", "Martinique", "St. Lucia", "U.S.A.", "St.Vincent-Grenadines", "Suriname") ~ "Americas",
+      .default = continent
+    )
+  )
+
+# check to see if we are still missing anything
+choc_withcont %>% 
+  filter(is.na(continent)) %>% 
+  select(country, continent) %>% 
+  distinct(country, continent)
+
+```
+
+Great! Now we can proceed to filter out countries with fewer than 10 ratings and bars that are not single-origin (Blend).
+
+```{r}
+# tasks 2 & 3
+choc_withcont <- choc_withcont %>% 
+  group_by(country) %>% 
+  filter(
+    n() >= 10,
+    country != "Blend") %>% 
+  ungroup()
+```
+
+Here are the violin plots of rating by continent:
+
+```{r}
+# violin plot of rating by continent
+choc_withcont %>% 
+  ggplot(mapping = aes(x = continent, y = rating)) +
+    geom_violin()
+```
+
+Ratings are similar across continents, but the distributions vary a bit.
+
+# Part 3
+```{r}
+# task 1
+# add in a column for each ingredient
+choc_ingr_char<- chocolate %>% 
+  replace_na(list(ingredients = "")) %>% 
+  mutate(
+    beans = str_detect(ingredients, "B") * 1,
+    sugar = str_detect(ingredients, "S[^a]+") * 1,
+    cocoa_butter = str_detect(ingredients, "C") * 1,
+    vanilla = str_detect(ingredients, "V") * 1,
+    lethicin = str_detect(ingredients, "L") * 1,
+    salt = str_detect(ingredients, "Sa") * 1
+  )
+```
+
+```{r}
+# task 2
+# add in a column for each characteristic
+choc_ingr_char <- choc_ingr_char %>% 
+  mutate(
+    char_cocoa = str_detect(most_memorable_characteristics, "cocoa") * 1,
+    char_sweet = str_detect(most_memorable_characteristics, "sweet") * 1,
+    char_nutty = str_detect(most_memorable_characteristics, "nutty") * 1,
+    char_creamy = str_detect(most_memorable_characteristics, "creamy") * 1,
+    char_roasty = str_detect(most_memorable_characteristics, "roasty") * 1,
+    char_earthy = str_detect(most_memorable_characteristics, "earthy") * 1
+  )
+```
+
+```{r}
+# task 3
+# take mean across char/ingred per year, then convert to long dataset
+choc_feature_means <- choc_ingr_char %>% 
+  group_by(review_date) %>% 
+  summarize(across(beans:char_earthy, mean)) %>% 
+  pivot_longer(-review_date, names_to = "feature", values_to = "mean_score")
+
+choc_feature_means
+```
+
+
+## Part 4
+```{r}
+# plot of 
+choc_feature_means %>% 
+  # Replacing char_ with double quotes around characteristic
+  mutate(
+    is_char = str_detect(feature, "char_"),
+    feature = str_replace_all(feature, "^char_[a-z]+", dQuote),
+    feature = str_replace_all(feature, c("char_" = "", "_" = " "))
+    ) %>% 
+  ggplot(mapping = aes(x = review_date, y = mean_score*100)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  geom_point() +
+  facet_wrap(~feature, ncol = 4) +
+  labs(
+    title = "Trends in dark chocolate bar characteristics & ingredients",
+    subtitle = "Fewer bars contain cocoa butter, lethicin, sugar, and vanilla; more taste like cocoa",
+    x = "Year",
+    y = "% of bar reviews containing:",
+    caption = "Alex Zhong"
+  ) +
+  theme(
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+## Part 5
+
+Using the 
+
+```{r}
+choc_feature_means %>% 
+  ggplot(mapping = aes(x = review_date, y = mean_score, color = feature)) +
+  geom_step() +
+  scale_color_brewer(palette = "Set3") +
+  scale_x_continuous(breaks = 2006:2021) +
+  scale_y_continuous(breaks = seq(0,1,0.1), trans = "probit") +
+  theme(
+    panel.background = element_rect(fill = "yellow"),
+    panel.grid = element_line(color = "black", linetype = "longdash", linewidth = 0.05),
+    legend.position = "right"
+    )
+```
+
+My customizations are:
+
+1. I **omitted the title/subtitle/caption**. Adding descriptive text would help to summarize findings and provide more context to the figure.
+2. I used **the wrong geom/type of chart**. Using a more appropriate geom would convey plot information better.
+3. I *didn't use descriptive axis labels**. Changing axis labels from variable names would enhance figure readability.
+4. I used *muted colors for data** and *bright colors for the plot background**. Using colors that make data trends stand out more would enhance figure readability.
+5. I used *crowded axis labels**. Reducing axis labels when appropriate would help to reduce overcrowding.
+6. I had a *crowded plot** with many lines. Simplifying the plot (fewer lines) would enhance the message of each plot within the figure.
+7. I used *dark gridlines**. Using light or no gridlines would help to draw focus to data.
+8. I used an *unintuitive y-axis scale** (probit). Using a more reasonable axis transformation (when appropriate) would enhance figure readability.
+
+
+## Part 6
+
+```{r}
+ggplot(chocolate, mapping = aes(x = rating, y = review_date, group = review_date, fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 1.5, rel_min_height = 0.01, show.legend = FALSE) +
+  scale_fill_viridis(option = "H", direction = -1) +
+  theme_ridges(center_axis_labels = TRUE) +
+  labs(
+    title = "Distribution of chocolate bar ratings over time", 
+    subtitle = "Poor ratings have disappeared; ratings now cluster between 2.5 and 4",
+    caption = "by Alex Zhong (2023)",
+    x = "Rating (out of 5)", 
+    y = "Year"
+    ) +
+  scale_x_continuous(limits = c(0,5)) +
+  scale_y_reverse(breaks = seq(2006, 2021, 5)) +
+  theme(axis.title.y=element_text(angle=0))
+
+```
+
+Here are the improvements I made:
+
+1. I **added a title, subtitle, and caption**. These added more information, summarized the key findings from the figure, and .
+2. I **removed the background color**. I found it to be distracting, and the white makes the graph feel cleaner.
+3. I used **descriptive axis titles**. These made the figure easier to comprehend.
+4. I **simplified the year axis**. I think this makes the plot less crowded without removing needed information.
+5. I **changed the fill color variable** from year to rating. I think this gives the reader another visual cue to see the change in distribution over time.
+6. I also **changed the fill color scale**. Since the color scale is more dynamic, the reader can better distinguish differences between colors than the original black to blue.
+7. I **converted violin to joy/ridgeplots**. Ridgeplots are less controversial and convey the same information; plus, the stacking of ridgeplots allows densities to be more easily comparable.
+
+
+```{r}
+options(width = 120)
+sessioninfo::session_info()
+```
+
