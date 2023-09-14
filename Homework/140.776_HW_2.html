@@ -357,8 +357,8 @@ display: none;
 
 <pre class="r"><code>library(tidyverse)
 library(tidytuesdayR)</code></pre>
-<div id="part-1" class="section level2">
-<h2>Part 1</h2>
+<div id="part-1a" class="section level2">
+<h2>Part 1A</h2>
 <p>Let’s create a function Exp(x) that approximates <span class="math inline">\(e^x\)</span>: <span class="math display">\[\text{Exp}(x)=1+x+\frac{x^2}{2!}+\frac{x^3}{3!}+
 \cdots\]</span></p>
 <pre class="r"><code>Exp &lt;- function(x, k){
@@ -370,11 +370,33 @@ library(tidytuesdayR)</code></pre>
   return(sum)
   
 }</code></pre>
+<p>Cool! Let’s test this out.</p>
 <pre class="r"><code>Exp(2.3, 50)</code></pre>
 <pre><code>## [1] 9.974182</code></pre>
 <pre class="r"><code># check
 exp(2.3)</code></pre>
 <pre><code>## [1] 9.974182</code></pre>
+</div>
+<div id="part-1b" class="section level2">
+<h2>Part 1B</h2>
+<pre class="r"><code>sample_mean &lt;- function(x){
+  N = length(x)
+  sample_sum = sum(x)
+  return(sample_sum / N)
+}
+
+sample_sd &lt;- function(x){
+  N = length(x)
+  x_mean = sample_mean(x)
+  sum_sqd = sum((sapply(x, &quot;-&quot;, x_mean))^2)
+  return(sqrt(sum_sqd/(N-1)))
+}</code></pre>
+<pre class="r"><code>x = rnorm(10000, 1.5, 2.5)
+
+sample_mean(x)</code></pre>
+<pre><code>## [1] 1.510149</code></pre>
+<pre class="r"><code>sample_sd(x)</code></pre>
+<pre><code>## [1] 2.487146</code></pre>
 </div>
 
 
