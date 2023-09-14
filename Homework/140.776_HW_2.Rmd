@@ -1,0 +1,50 @@
+---
+title: "Project 2"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning = FALSE, message = FALSE}
+library(tidyverse)
+library(tidytuesdayR)
+```
+
+## Part 1
+
+Let's create a function Exp(x) that approximates $e^x$:
+\[\text{Exp}(x)=1+x+\frac{x^2}{2!}+\frac{x^3}{3!}+ \cdots\]
+
+```{r}
+Exp <- function(x, k){
+  # error if x and k are not numbers
+  stopifnot(
+    is.numeric(x),
+    is.numeric(k)
+  )
+  
+  # error if k is not a positive integer
+  if(k %% 1 != 0 | k < 1){
+    stop("k must be a positive integer")
+  }
+  
+  # approximate exp(x) with k terms
+  sum = 1
+  for(i in 1:k){
+    sum = sum + x^i/factorial(i)
+  }
+  return(sum)
+  
+}
+```
+
+```{r}
+Exp(2.3, 50)
+
+# check
+exp(2.3)
+```
+
