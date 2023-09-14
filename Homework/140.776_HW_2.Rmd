@@ -20,17 +20,6 @@ Let's create a function Exp(x) that approximates $e^x$:
 
 ```{r}
 Exp <- function(x, k){
-  # error if x and k are not numbers
-  stopifnot(
-    is.numeric(x),
-    is.numeric(k)
-  )
-  
-  # error if k is not a positive integer
-  if(k %% 1 != 0 | k < 1){
-    stop("k must be a positive integer")
-  }
-  
   # approximate exp(x) with k terms
   sum = 1
   for(i in 1:k){

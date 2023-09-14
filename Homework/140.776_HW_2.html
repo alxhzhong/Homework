@@ -362,17 +362,6 @@ library(tidytuesdayR)</code></pre>
 <p>Let’s create a function Exp(x) that approximates <span class="math inline">\(e^x\)</span>: <span class="math display">\[\text{Exp}(x)=1+x+\frac{x^2}{2!}+\frac{x^3}{3!}+
 \cdots\]</span></p>
 <pre class="r"><code>Exp &lt;- function(x, k){
-  # error if x and k are not numbers
-  stopifnot(
-    is.numeric(x),
-    is.numeric(k)
-  )
-  
-  # error if k is not a positive integer
-  if(k %% 1 != 0 | k &lt; 1){
-    stop(&quot;k must be a positive integer&quot;)
-  }
-  
   # approximate exp(x) with k terms
   sum = 1
   for(i in 1:k){
