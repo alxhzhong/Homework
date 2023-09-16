@@ -13,6 +13,7 @@ library(tidyverse)
 library(tidytuesdayR)
 ```
 
+# {.tabset}
 ## Part 1A
 
 Let's create a function Exp(x) that approximates $e^x$:

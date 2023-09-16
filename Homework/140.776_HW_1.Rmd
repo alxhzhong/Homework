@@ -339,7 +339,7 @@ choc_feature_means %>%
 <h2>Part 5</h2>
 ## Part 5
 
-Let's use this same "mean score" by year of just characteristics to make a bad plot:
+Let's use this same "mean score" by year of just characteristics to make a bad plot. I will note that I tried to make this in the style of an enthusiastic and well-meaning plotter, so most choices might genuinely be defensible.
 
 ```{r}
 choc_jpg <- readJPEG(here("Homework", "exp_bars.jpg"))
