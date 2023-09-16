@@ -62,3 +62,15 @@ sample_mean(x)
 sample_sd(x)
 ```
 
+## Part 1C
+```{r}
+calculate_CI <- function(x, conf = 0.95){
+  alpha = 1 - conf
+  df = length(x) - 1
+  t_score <- qt(p = alpha / 2, df = df, lower.tail = FALSE)
+  
+  x_mean = sample_mean(x)
+  lower_bound = x_mean - t_score
+}
+```
+
