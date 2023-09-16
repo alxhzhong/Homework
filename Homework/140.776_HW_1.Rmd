@@ -1,12 +1,21 @@
 ---
 title: "Project 1"
-output: html_document
 date: "`r Sys.Date()`"
+author: "Alex Zhong"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# {.tabset}
+
+## Set-up
+
+For this project, we will be using the `chocolate` dataset from the [Tidy Tuesday](https://github.com/rfordatascience/tidytuesday/tree/master/data/2022#2022-data) project.
+
+This data comes from [Flavors of Cacao](http://flavorsofcacao.com/chocolate_database.html), and the data dictionary for this dataset is [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2022/2022-01-18/readme.md#data-dictionary).
 
 ```{r warning = FALSE, message = FALSE}
 # Load necessary packages/datasets
@@ -14,6 +23,8 @@ library(tidyverse)
 library(here)
 library(ggridges)
 library(viridis)
+library(jpeg)
+library(ggimage)
 
 # tests if a directory named "data" exists locally
 if (!dir.exists(here("data"))) {
@@ -21,7 +32,7 @@ if (!dir.exists(here("data"))) {
 }
 
 # saves data only once (not each time you knit a R Markdown)
-# code from Dr. Collado =-Torres (in Project 1)
+# code from Dr. Collado-Torres (in Project 1)
 if (!file.exists(here("data", "chocolate.RDS"))) {
     url_csv <- "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-18/chocolate.csv"
     chocolate <- readr::read_csv(url_csv)
@@ -37,15 +48,13 @@ chocolate <- readRDS(here("data", "chocolate.RDS"))
 as_tibble(chocolate)
 ```
 
-# Preliminary data exploration
-
 ```{r}
 glimpse(chocolate)
 ```
 
-# Exploring data
+## Part 1 {.tabset .tabset-pills}
 
-## Q1
+### Q1
 Let's make a histogram of the rating scores:
 
 ```{r}
@@ -56,7 +65,7 @@ chocolate %>%
 
 I also chose **15** as the number of bins. Since rating values are discrete with increments of every 0.25 (and range from 1 to 4), there are really only 13 possible values that the rating variable can take on. With a higher number of bins, the histogram starts to show gaps between possible values that make the histogram look weird. Being the closest to 13 without aggregating too much data (and thus obscuring some of the distribution of the ratings), I chose 15.
 
-## Q2
+### Q2
 Here's a look at the number of bars produced by country of bean origin:
 
 ```{r}
@@ -68,7 +77,9 @@ chocolate %>%
 
 It looks like **Venezuela, Peru, the Dominican Republic, Ecuador, and Madagascar** are the countries contributing beans to the highest number of chocolate bars.
 
-## Q3
+### Q3
+
+Let's look at the mean and standard deviation of ratings of bars using Ecuadorian beans.
 ```{r}
 chocolate %>% 
   filter(country_of_bean_origin == "Ecuador") %>% 
@@ -80,7 +91,8 @@ chocolate %>%
 ```
 For the **219 ratings** of Ecuadorian beans, the **average rating was 3.16** with a **standard deviation of 0.51**.
 
-## Q4
+### Q4
+Let's look at average ratings by company of bars using Ecuadorian beans.
 ```{r}
 chocolate %>% 
   filter(country_of_bean_origin == "Ecuador") %>% 
@@ -91,7 +103,8 @@ chocolate %>%
 
 Amano, Benoit Nihant, Beschle, Durci, and The Smooth Chocolator make the best chocolate from Ecuadorian beans, with an average rating of 4.
 
-## Question 5
+### Q5
+Let's look at which countries make the best chocolate on average.
 ```{r}
 chocolate %>% 
   group_by(country_of_bean_origin) %>% 
@@ -102,7 +115,8 @@ chocolate %>%
 
 The top 3 countries with the highest average ratings are **Tobago, China, and Sao Tome & Principe**.
 
-## Question 6
+### Q6
+Some countries may produce beans used in very few bars, adding variability to the mean. Let's only look at countries whose beans are used by 10 or more bars.
 ```{r}
 chocolate %>% 
   group_by(country_of_bean_origin) %>% 
@@ -117,7 +131,8 @@ chocolate %>%
 
 Removing countries of bean origin with less than 10 chocolate bar reviews, the new top 3 countries are **Solomon Islands, Congo, and Cuba**.
 
-## Question 7
+### Q7
+Looking at the `cocoa_percent` variable, let's categorize it and calculate rating by cocoa percent category across countries.
 ```{r}
 # step 1
 # extract vector of countries of bean origin with <50 reviews
@@ -160,18 +175,20 @@ choc_groups <- choc_groups %>%
 ```
 
 
-```{r fig.width=10, fig.height=14}
+```{r fig.width=14, fig.height=10}
 # step 4
 # boxplot of rating by country/percentage group
 choc_groups %>% 
   ggplot(mapping = aes(x = perc_group, y = rating)) +
   geom_boxplot() + 
-  facet_wrap(~country_of_bean_origin, ncol = 4)
+  facet_wrap(~country_of_bean_origin, ncol = 4) +
+  labs(x = "Cocoa percent group (%)") +
+  scale_x_discrete(labels = c("<60", "60-70", "70-90", ">90"))
 ```
 
-The highest-rated category is generally the >=70% to <90% category, though the >=60% to <70% category is similarly rated. The pattern of increased rating as chocolate percentage increases (up to the third category) generally holds, but there are a few exceptions (e.g. Madagascar, Tanzania)
+The highest-rated category is generally the >=70% to <90% category, though the >=60% to <70% category is similarly rated. The pattern of increased rating as chocolate percentage increases (up to the third category) generally holds, but there are a few exceptions (e.g. Madagascar, the Dominican Republic)
 
-# Part 2
+## Part 2
 
 ```{r warning = FALSE}
 # load gapminder data
@@ -249,7 +266,8 @@ choc_withcont %>%
 
 Ratings are similar across continents, but the distributions vary a bit.
 
-# Part 3
+## Part 3
+We also have ingredient and characteristic information about each bar! Let's separate these columns into individual component ingredients and (a select few) characteristics, then find the % of bars from each year that have each ingredient/characteristic.
 ```{r}
 # task 1
 # add in a column for each ingredient
@@ -290,10 +308,10 @@ choc_feature_means <- choc_ingr_char %>%
 choc_feature_means
 ```
 
-
 ## Part 4
+Using our calculated information about yearly usage of each ingredient and characteristic, let's make a scatter plot!
 ```{r}
-# plot of 
+# plot of ingredient/characteristic % usage by year
 choc_feature_means %>% 
   # Replacing char_ with double quotes around characteristic
   mutate(
@@ -318,37 +336,48 @@ choc_feature_means %>%
 
 ```
 
+<h2>Part 5</h2>
 ## Part 5
 
-Using the 
+Let's use this same "mean score" by year of just characteristics to make a bad plot:
 
 ```{r}
+choc_jpg <- readJPEG(here("Homework", "exp_bars.jpg"))
+
 choc_feature_means %>% 
+  filter(str_detect(choc_feature_means$feature, "char")) %>%
   ggplot(mapping = aes(x = review_date, y = mean_score, color = feature)) +
   geom_step() +
-  scale_color_brewer(palette = "Set3") +
+  annotation_raster(choc_jpg, 2016, 2021, 0.5, 1) +
+  scale_color_brewer(palette = "Oranges") +
   scale_x_continuous(breaks = 2006:2021) +
-  scale_y_continuous(breaks = seq(0,1,0.1), trans = "probit") +
+  scale_y_continuous(breaks = seq(0, 1, 0.05), limits = c(0,1)) +
+  labs(title = "My chocolate bar plot (yum!!!)") +
   theme(
-    panel.background = element_rect(fill = "yellow"),
-    panel.grid = element_line(color = "black", linetype = "longdash", linewidth = 0.05),
-    legend.position = "right",
-    legend.direction = "horizontal"
+    plot.background = element_rect(fill = "chocolate3"),
+    panel.background = element_rect(fill = "chocolate1"),
+    panel.grid = element_line(color = "chocolate4", linetype = "longdash", linewidth = 1),
+    legend.background = element_rect(fill = "chocolate"),
+    legend.position = c(0.5, 0.5),
+    plot.title = element_text(color = "white"),
+    axis.title = element_text(size = 5),
+    axis.text.x = element_text(angle = 90),
+    axis.text.y = element_text(angle = -45)
     )
 ```
+Image from [Flavors of Cacao](http://flavorsofcacao.com/experiencing_chocolate.html).
 
 My customizations are:
 
-1. I **omitted the title/subtitle/caption**. Adding descriptive text would help to summarize findings and provide more context to the figure.
+1. I **omitted the subtitle/caption** and used an **un-descriptive title**. Adding descriptive text would help to summarize findings and provide more context to the figure.
 2. I used **the wrong geom/type of chart**. Using a more appropriate geom would convey plot information better.
 3. I **didn't use descriptive axis labels**. Changing axis labels from variable names would enhance figure readability.
-4. I used **muted colors for data** and **bright colors for the plot background**. Using colors that make data trends stand out more would enhance figure readability.
+4. I used **muted colors for data** and **similar/distracting colors for the plot background**. Using colors that make data trends stand out more would enhance figure readability.
 5. I used **crowded axis labels**. Reducing axis labels when appropriate would help to reduce overcrowding.
 6. I had a **crowded plot** with many lines. Simplifying the plot (fewer lines) would enhance the message of each plot within the figure.
 7. I used **dark gridlines**. Using light or no gridlines would help to draw focus to data.
-8. I used an **unintuitive y-axis scale** (probit). Using a more reasonable axis transformation (when appropriate) would enhance figure readability.
-9. I used an **inappropriately-sized legend**. Placing the legend in an appropriate location at a readable yet small size will draw more attention to the trends presented in the plot.
-
+8. I used **un-intuitively angled axis labels** Using horizontal/vertical or appropriately angled text would enhance figure readability.
+9. I used an **inappropriately-sized and placed legend**. Placing the legend in an appropriate location at a readable yet small size will draw more attention to the trends presented in the plot.
 
 ## Part 6
 
@@ -379,7 +408,6 @@ Here are the improvements I made:
 5. I **changed the fill color variable** from year to rating. I think this gives the reader another visual cue to see the change in distribution over time.
 6. I also **changed the fill color scale**. Since the color scale is more dynamic, the reader can better distinguish differences between colors than the original black to blue.
 7. I **converted violin to joy/ridgeplots**. Ridgeplots are less controversial and convey the same information; plus, the stacking of ridgeplots allows densities to be more easily comparable.
-
 
 ## R Session Information
 ```{r}
