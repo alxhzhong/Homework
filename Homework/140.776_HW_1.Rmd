@@ -336,7 +336,6 @@ choc_feature_means %>%
 
 ```
 
-<h2>Part 5</h2>
 ## Part 5
 
 Let's use this same "mean score" by year of just characteristics to make a bad plot. I will note that I tried to make this in the style of an enthusiastic and well-meaning plotter, so most choices might genuinely be defensible.
@@ -365,6 +364,7 @@ choc_feature_means %>%
     axis.text.y = element_text(angle = -45)
     )
 ```
+
 Image from [Flavors of Cacao](http://flavorsofcacao.com/experiencing_chocolate.html).
 
 My customizations are:
@@ -389,13 +389,16 @@ ggplot(chocolate, mapping = aes(x = rating, y = review_date, group = review_date
   labs(
     title = "Distribution of chocolate bar ratings over time", 
     subtitle = "Poor ratings have disappeared; ratings now cluster between 2.5 and 4",
-    caption = "by Alex Zhong (2023)",
+    caption = "Data from Tidy Tuesday/Flavors of Cacao \n Figure by Alex Zhong (2023)",
     x = "Rating (out of 5)", 
     y = "Year"
     ) +
   scale_x_continuous(limits = c(0,5)) +
   scale_y_reverse(breaks = seq(2006, 2021, 5)) +
-  theme(axis.title.y=element_text(angle=0))
+  theme(
+    axis.title.y = element_text(angle = 0),
+    plot.caption = element_text(size = 8)
+        )
 
 ```
 
