@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r warning = FALSE, message = FALSE}
 library(tidyverse)
 library(tidytuesdayR)
+library(here)
 ```
 
 # {.tabset}
@@ -119,3 +120,20 @@ confint(fit, level = 0.999)
 we see that the confidence intervals match for both levels of $\alpha$, so our function works as intended!
 
 ## Part 2
+First, let's import the data
+```{r}
+tuesdata <- tidytuesdayR::tt_load("2020-01-07")
+rainfall <- tuesdata$rainfall
+temperature <- tuesdata$temperature
+
+if (!file.exists(here("data", "tuesdata_rainfall.RDS"))) {
+    tuesdata <- tidytuesdayR::tt_load("2020-01-07")
+    rainfall <- tuesdata$rainfall
+    temperature <- tuesdata$temperature
+
+    # save the files to RDS objects
+    saveRDS(tuesdata$rainfall, file = here("data", "tuesdata_rainfall.RDS"))
+    saveRDS(tuesdata$temperature, file = here("data", "tuesdata_temperature.RDS"))
+}
+```
+
