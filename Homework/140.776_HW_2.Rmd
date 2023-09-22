@@ -121,7 +121,7 @@ we see that the confidence intervals match for both levels of $\alpha$, so our f
 
 ## Part 2
 First, let's import the data
-```{r cache=TRUE}
+```{r}
 if (!file.exists(here("data", "tuesdata_rainfall.RDS"))) {
     tuesdata <- tidytuesdayR::tt_load("2020-01-07")
     rainfall <- tuesdata$rainfall
@@ -131,6 +131,9 @@ if (!file.exists(here("data", "tuesdata_rainfall.RDS"))) {
     saveRDS(tuesdata$rainfall, file = here("data", "tuesdata_rainfall.RDS"))
     saveRDS(tuesdata$temperature, file = here("data", "tuesdata_temperature.RDS"))
 }
+
+rainfall <- readRDS(here("data", "tuesdata_rainfall.RDS"))
+temperature <- readRDS(here("data", "tuesdata_temperature.RDS"))
 ```
 
 Using this data, we will (do X)
