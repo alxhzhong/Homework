@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2023-09-14" />
+<meta name="date" content="2023-09-22" />
 
 <title>Project 2</title>
 
@@ -350,13 +350,15 @@ display: none;
 
 
 <h1 class="title toc-ignore">Project 2</h1>
-<h4 class="date">2023-09-14</h4>
+<h4 class="date">2023-09-22</h4>
 
 </div>
 
 
 <pre class="r"><code>library(tidyverse)
 library(tidytuesdayR)</code></pre>
+<div id="section" class="section level1 tabset">
+<h1 class="tabset"></h1>
 <div id="part-1a" class="section level2">
 <h2>Part 1A</h2>
 <p>Let’s create a function Exp(x) that approximates <span class="math inline">\(e^x\)</span>: <span class="math display">\[\text{Exp}(x)=1+x+\frac{x^2}{2!}+\frac{x^3}{3!}+
@@ -376,9 +378,18 @@ library(tidytuesdayR)</code></pre>
 <pre class="r"><code># check
 exp(2.3)</code></pre>
 <pre><code>## [1] 9.974182</code></pre>
+<p>And we see that the two numbers match, so our function works as
+intended!</p>
 </div>
 <div id="part-1b" class="section level2">
 <h2>Part 1B</h2>
+<p>Now, let’s create functions to calculate the mean and standard
+deviation of a given set of <span class="math inline">\(n\)</span>
+observations <span class="math inline">\(x_1,x_2,...,x_n\)</span>:</p>
+<p><span class="math display">\[\begin{align*}
+   \bar{x} &amp;= \frac{1}{n}\sum_{i=1}^n{x_i} \\
+   s &amp;= \sqrt{\frac{1}{n-1}\sum_{i=1}^n{(x_i-\bar{x})^2}}
+\end{align*}\]</span></p>
 <pre class="r"><code>sample_mean &lt;- function(x){
   N = length(x)
   sample_sum = sum(x)
@@ -391,12 +402,61 @@ sample_sd &lt;- function(x){
   sum_sqd = sum((sapply(x, &quot;-&quot;, x_mean))^2)
   return(sqrt(sum_sqd/(N-1)))
 }</code></pre>
-<pre class="r"><code>x = rnorm(10000, 1.5, 2.5)
+<pre class="r"><code># specify mean = 1.5, sd = 2.5
+x = rnorm(50000, 1.5, 2.5)
 
+# check
 sample_mean(x)</code></pre>
-<pre><code>## [1] 1.510149</code></pre>
+<pre><code>## [1] 1.486373</code></pre>
 <pre class="r"><code>sample_sd(x)</code></pre>
-<pre><code>## [1] 2.487146</code></pre>
+<pre><code>## [1] 2.506379</code></pre>
+<p>And we see that the means and standard deviations match, so our
+functions work as intended!</p>
+</div>
+<div id="part-1c" class="section level2">
+<h2>Part 1C</h2>
+<p>Using these mean and standard deviation functions, let’s now create a
+function to estimate the confidence intervals for the estimate of the
+mean:</p>
+<pre class="r"><code>calculate_CI &lt;- function(x, conf = 0.95){
+  alpha = 1 - conf
+  df = length(x) - 1
+  t_score &lt;- qt(p = alpha / 2, df = df, lower.tail = FALSE)
+  se_mean &lt;- sample_sd(x) / sqrt(length(x))
+  
+  x_mean = sample_mean(x)
+  lower_bound = x_mean - t_score * se_mean
+  upper_bound = x_mean + t_score * se_mean
+  
+  return(c(lower_bound = lower_bound, upper_bound = upper_bound))
+}</code></pre>
+<p>To test this function, we’ll create a sample x.</p>
+<pre class="r"><code>x &lt;- rnorm(1000)
+
+# code provided by Dr. Collado-Torres
+dat &lt;- data.frame(x = x)
+fit &lt;- lm(x ~ 1, dat)</code></pre>
+<p>Then, testing on <span class="math inline">\(1 - \alpha =
+0.95\)</span>,</p>
+<pre class="r"><code>calculate_CI(x, conf = 0.95)</code></pre>
+<pre><code>## lower_bound upper_bound 
+## -0.08084765  0.04527803</code></pre>
+<pre class="r"><code>confint(fit, level = 0.95)</code></pre>
+<pre><code>##                   2.5 %     97.5 %
+## (Intercept) -0.08084765 0.04527803</code></pre>
+<p>and on <span class="math inline">\(1 - \alpha = 0.999\)</span>,</p>
+<pre class="r"><code>calculate_CI(x, conf = 0.999)</code></pre>
+<pre><code>## lower_bound upper_bound 
+## -0.12384475  0.08827512</code></pre>
+<pre class="r"><code>confint(fit, level = 0.999)</code></pre>
+<pre><code>##                 0.05 %    99.95 %
+## (Intercept) -0.1238448 0.08827512</code></pre>
+<p>we see that the confidence intervals match for both levels of <span class="math inline">\(\alpha\)</span>, so our function works as
+intended!</p>
+</div>
+<div id="part-2" class="section level2">
+<h2>Part 2</h2>
+</div>
 </div>
 
 
