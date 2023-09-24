@@ -155,7 +155,7 @@ dim(df)
 
 ## Part 3A
 
-Using this newly joined dataset, let's plot rainfall over time.
+Using this newly joined dataset, let's plot temperature over time.
 
 ```{r}
 df %>% 
@@ -166,7 +166,8 @@ df %>%
   theme_classic() +
   theme(legend.position = c(0.95, 0.1),
         legend.justification = c(1, 0),
-        legend.title = element_blank()) +
+        legend.title = element_blank(),
+        panel.grid.major.y = element_line(color = "grey", linewidth = 0.05)) +
   labs(
     title = "Temperature over time in select Australian cities",
     subtitle = "Temperatures steadily fluctuate by year; Canberra and Sydney have the most intra-year variation",
