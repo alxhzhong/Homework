@@ -1,5 +1,6 @@
 ---
 title: "Project 2"
+author: "Alex Zhong"
 output: html_document
 date: "`r Sys.Date()`"
 ---
@@ -170,7 +171,7 @@ df %>%
         panel.grid.major.y = element_line(color = "grey", linewidth = 0.05)) +
   labs(
     title = "Temperature over time in select Australian cities",
-    subtitle = "Temperatures steadily fluctuate by year; Canberra and Sydney have the most intra-year variation",
+    subtitle = "Temperatures steadily fluctuate by year; Canberra has the most intra-year variation",
     x = "Year",
     y = "Temperature (°C)",
     caption = "Data from Australian Bureau of Meteorology \n Figure by Alex Zhong (2023)"
@@ -262,6 +263,8 @@ rain_df <- df %>%
     lower_bound = calculate_CI(rainfall)[1],
     upper_bound = calculate_CI(rainfall)[2]
   )
+
+head(rain_df)
 ```
 ### Part B
 
@@ -307,4 +310,10 @@ df %>%
 ```
 
 (another note that Brisbane has 2 weather stations contributing data, which explains why there are >365 observations in 2014)
+
+## R session info
+```{r}
+options(width = 120)
+sessioninfo::session_info()
+```
 
