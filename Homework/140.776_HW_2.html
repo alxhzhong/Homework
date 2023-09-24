@@ -410,9 +410,9 @@ x = rnorm(50000, 1.5, 2.5)
 
 # check
 sample_mean(x)</code></pre>
-<pre><code>## [1] 1.489414</code></pre>
+<pre><code>## [1] 1.495122</code></pre>
 <pre class="r"><code>sample_sd(x)</code></pre>
-<pre><code>## [1] 2.496222</code></pre>
+<pre><code>## [1] 2.494598</code></pre>
 <p>And we see that the means and standard deviations match, so our
 functions work as intended!</p>
 </div>
@@ -443,17 +443,17 @@ fit &lt;- lm(x ~ 1, dat)</code></pre>
 0.95\)</span>,</p>
 <pre class="r"><code>calculate_CI(x)</code></pre>
 <pre><code>## lower_bound upper_bound 
-## -0.03233192  0.08778229</code></pre>
+## -0.05875176  0.06337431</code></pre>
 <pre class="r"><code>confint(fit)</code></pre>
 <pre><code>##                   2.5 %     97.5 %
-## (Intercept) -0.03233192 0.08778229</code></pre>
+## (Intercept) -0.05875176 0.06337431</code></pre>
 <p>and on <span class="math inline">\(1 - \alpha = 0.999\)</span>,</p>
 <pre class="r"><code>calculate_CI(x, conf = 0.999)</code></pre>
 <pre><code>## lower_bound upper_bound 
-## -0.07327967  0.12873004</code></pre>
+##  -0.1003854   0.1050079</code></pre>
 <pre class="r"><code>confint(fit, level = 0.999)</code></pre>
-<pre><code>##                  0.05 % 99.95 %
-## (Intercept) -0.07327967 0.12873</code></pre>
+<pre><code>##                 0.05 %   99.95 %
+## (Intercept) -0.1003854 0.1050079</code></pre>
 <p>we see that the confidence intervals match for both levels of <span class="math inline">\(\alpha\)</span>, so our function works as
 intended!</p>
 </div>
@@ -484,14 +484,23 @@ city_name column was modified to be uppercase.</p>
     city_name = toupper(city_name)
     ) %&gt;% 
   select(-c(month, day)) %&gt;% 
-  inner_join(temperature, by = join_by(city_name, date))</code></pre>
-<pre><code>## Warning in inner_join(., temperature, by = join_by(city_name, date)): Detected an unexpected many-to-many relationship between `x` and `y`.
-## ℹ Row 1 of `x` matches multiple rows in `y`.
-## ℹ Row 138722 of `y` matches multiple rows in `x`.
-## ℹ If a many-to-many relationship is expected, set `relationship =
-##   &quot;many-to-many&quot;` to silence this warning.</code></pre>
-<pre class="r"><code>dim(df)</code></pre>
+  inner_join(temperature, by = join_by(city_name, date), relationship = &quot;many-to-many&quot;)
+
+# dimensions match those specified
+dim(df)</code></pre>
 <pre><code>## [1] 83964    13</code></pre>
+<pre class="r"><code>head(df)</code></pre>
+<pre><code>## # A tibble: 6 × 13
+##   station_code city_name date        year rainfall period quality   lat  long
+##   &lt;chr&gt;        &lt;chr&gt;     &lt;date&gt;     &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;
+## 1 009151       PERTH     1967-07-05  1967      2.8      1 Y       -32.0  116.
+## 2 009151       PERTH     1967-07-05  1967      2.8      1 Y       -32.0  116.
+## 3 009151       PERTH     1967-07-06  1967      4.8      1 Y       -32.0  116.
+## 4 009151       PERTH     1967-07-06  1967      4.8      1 Y       -32.0  116.
+## 5 009151       PERTH     1967-07-07  1967      5.8      1 Y       -32.0  116.
+## 6 009151       PERTH     1967-07-07  1967      5.8      1 Y       -32.0  116.
+## # ℹ 4 more variables: station_name &lt;chr&gt;, temperature &lt;dbl&gt;, temp_type &lt;chr&gt;,
+## #   site_name &lt;chr&gt;</code></pre>
 </div>
 <div id="part-3a" class="section level2">
 <h2>Part 3A</h2>

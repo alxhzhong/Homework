@@ -149,9 +149,12 @@ df <- rainfall %>%
     city_name = toupper(city_name)
     ) %>% 
   select(-c(month, day)) %>% 
-  inner_join(temperature, by = join_by(city_name, date))
+  inner_join(temperature, by = join_by(city_name, date), relationship = "many-to-many")
 
+# dimensions match those specified
 dim(df)
+
+head(df)
 ```
 
 ## Part 3A
