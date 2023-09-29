@@ -173,7 +173,7 @@ df %>%
         legend.title = element_blank(),
         panel.grid.major.y = element_line(color = "grey", linewidth = 0.05)) +
   labs(
-    title = "Temperature over time in select Australian cities",
+    title = "Daily temperature over time in select Australian cities",
     subtitle = "Temperatures steadily fluctuate by year; Canberra has the most intra-year variation",
     x = "Year",
     y = "Temperature (°C)",
@@ -278,6 +278,7 @@ rain_df <- df %>%
 
 head(rain_df)
 ```
+
 ### Part B
 
 ```{r}
@@ -288,6 +289,7 @@ rain_df %>%
   geom_errorbar(aes(ymin = lower_bound, ymax = upper_bound), width = 0.2) +
   facet_wrap(~city_name, nrow = 2) +
   theme_classic() +
+  theme(panel.grid.major.y = element_line(color = "grey", linewidth = 0.05)) + 
   labs(
     title = "Daily mean rainfall in select Australian cities",
     subtitle = "Perth is wettest city, Canberra is driest city; No consistent inter-year pattern in rainfall",
@@ -312,6 +314,7 @@ df %>%
   geom_line(linewidth = 1.5) +
   geom_hline(aes(yintercept = 365), linetype = "dashed") +
   theme_classic() +
+  theme(panel.grid.major.y = element_line(color = "grey", linewidth = 0.05)) +
   labs(
     title = "Weather observation count in select Australian cities by year",
     subtitle = "Lots of missing days for Melbourne and Perth",
