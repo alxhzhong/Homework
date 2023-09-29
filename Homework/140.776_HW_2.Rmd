@@ -196,6 +196,8 @@ This function will have two arguments: `city_name` and `year`. The function shou
 
 In creating this function, I found that filtering first helps me check to see if the city/year combo exists, so I switched the order of the two steps from what was outlined above.
 
+Upon the suggestion of a peer (Josh Stim), I also included information about the number/percent of observations that had 0 rainfall, since the log() transform removes these from the histogram.
+
 ```{r}
 plot_rainfall <- function(city_name, year){
   # check for argument datatype
@@ -223,6 +225,12 @@ plot_rainfall <- function(city_name, year){
          The valid years for the city entered range from ", min(valid_years), " to ", max(valid_years), ".")
   }
   
+  # check number of days with 0 measured rainfall, since log(0) is undefined and will not be plotted
+  num_zero <- entry %>% 
+    filter(rainfall == 0) %>% 
+    nrow()
+  perc_zero <- round(num_zero/nrow(entry) * 100, 2)
+  
   # plot histogram
   entry %>% 
     ggplot(aes(log(rainfall))) +
@@ -231,6 +239,7 @@ plot_rainfall <- function(city_name, year){
     # no caption, since we don't know what this plot looks like ahead of time
     labs(
       title = paste("Log-rainfall distribution in", str_to_title(city_name), "in", year),
+      subtitle = paste0(num_zero, " days with 0 mm rainfall (", perc_zero, "% of measurements)", sep = ""),
       x = "Log(rainfall (mm))"
     )
 }
@@ -249,7 +258,7 @@ try(plot_rainfall("Adelaide", 2018))
 try(plot_rainfall("perth", 1900))
 
 # an example plot
-plot_rainfall("perth", 2000)
+plot_rainfall("perth", 1995)
 ```
 
 ## Part 4
@@ -317,6 +326,6 @@ df %>%
 ## R session info
 ```{r}
 options(width = 120)
-sessioninfo::session_info()
+sessioninfo::session_info() 
 ```
 
