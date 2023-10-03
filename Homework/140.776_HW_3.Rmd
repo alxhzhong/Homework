@@ -1,0 +1,69 @@
+---
+title: "Project 3"
+author: "Alex Zhong"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning = FALSE, message = FALSE}
+library(tidyverse)
+library(tidytuesdayR)
+library(here)
+```
+
+# {.tabset}
+
+## Setup
+```{r}
+if (!file.exists(here("data", "b_lyrics.RDS"))) {
+    b_lyrics <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/beyonce_lyrics.csv")
+    ts_lyrics <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/taylor_swift_lyrics.csv")
+    sales <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/sales.csv")
+
+    # save the files to RDS objects
+    saveRDS(b_lyrics, file = here("data", "b_lyrics.RDS"))
+    saveRDS(ts_lyrics, file = here("data", "ts_lyrics.RDS"))
+    saveRDS(sales, file = here("data", "sales.RDS"))
+}
+
+b_lyrics <- readRDS(here("data", "b_lyrics.RDS"))
+ts_lyrics <- readRDS(here("data", "ts_lyrics.RDS"))
+sales <- readRDS(here("data", "sales.RDS"))
+```
+
+
+## Part 1 {.tabset}
+
+### 1A
+
+### 1B
+
+### 1C
+
+### 1D
+
+### 1E
+
+
+## Part 2 {.tabset}
+
+### 2A
+
+### 2B
+
+### 2C
+
+### 2D
+
+### 2E
+
+
+
+
+
+
+
