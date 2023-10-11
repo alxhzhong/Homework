@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(tidytuesdayR)
 library(here)
+library(tidytext)
 ```
 
 # {.tabset}
@@ -32,28 +33,141 @@ if (!file.exists(here("data", "b_lyrics.RDS"))) {
 
 b_lyrics <- readRDS(here("data", "b_lyrics.RDS"))
 ts_lyrics <- readRDS(here("data", "ts_lyrics.RDS"))
-sales <- readRDS(here("data", "sales.RDS"))
+raw_sales <- readRDS(here("data", "sales.RDS"))
 ```
 
 
 ## Part 1 {.tabset}
 
 ### 1A
+Taking a look at the `released` column, it seems that some of the release dates have some extra unnecessary information in the format (US/UK)[##].
+```{r}
+glimpse(raw_sales$released)
+```
+
+This can be generalized as anything between the start parentheses and end bracket: (....]. To remove this, we use a regular expression, then transform it into the date format:
+```{r}
+sales <- raw_sales %>% 
+  mutate(released = str_remove_all(released, " \\(.*\\]") %>% 
+                    mdy(.))
+
+# we can also use the more specific regex " \\(\\w{2}\\)\\[\\d{2}\\]"
+```
+
+Next, to make `country` a factor:
+```{r}
+sales <- sales %>% 
+  mutate(country = factor(country) %>% 
+                   fct_recode(., "WW" = "World", "FR" = "FRA"))
+
+levels(sales$country)
+```
+Next, to transform `sales` into units of millions of dollars:
+```{r}
+sales <- sales %>% mutate(sales = sales / 1e6L)
+```
+
+and finally, only keeping album sales from the UK, US, or the world:
+```{r}
+sales <- sales %>%
+  filter(country %in% c("US", "UK", "WW"))
+
+sales
+```
 
 ### 1B
+```{r}
+sales %>% 
+  filter(country == "US") %>% 
+  group_by(artist) %>% 
+  mutate(
+    years_since_release = interval(lag(released), released) %>% 
+                          as.duration(.) %>% 
+                          as.numeric(., "years") %>% 
+                          floor()
+  ) %>% 
+  summarize(
+    oldest = year(min(released)),
+    most_recent = year(max(released)),
+    med_years_since_release = median(years_since_release, na.rm = TRUE)
+  )
+```
 
 ### 1C
 
+```{r}
+sales %>% 
+  group_by(artist, country) %>% 
+  summarize(total_sales = sum(sales)) %>% 
+  ggplot(aes(x = artist, y = total_sales, fill = country)) +
+  geom_bar(position = "fill", stat = "identity") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_classic() +
+  labs(
+    title = "Studio album sales breakdown by artist",
+    subtitle = "Proportionally, Beyoncé makes more from worldwide and UK sales, \nwhile Taylor Swift makes more from US sales",
+    y = "% of studio album sales"
+  )
+```
+
 ### 1D
 
+```{r}
+sales %>% 
+  filter(country == "WW") %>% 
+  mutate(title = fct_reorder(title, sales)) %>% 
+  ggplot(aes(x = sales, y = title, fill = artist)) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+  labs(
+    x = "Global album sales (in millions of dollars)",
+    y = "Album title"
+  )
+```
+
+
 ### 1E
+
+```{r}
+sales %>% 
+  ggplot(aes(x = released, y = sales_mill, color = artist)) +
+  geom_point() +
+  facet_wrap(~country, nrow = 3)
+```
 
 
 ## Part 2 {.tabset}
 
 ### 2A
 
+```{r}
+count_lines_with_word = function(data, word){
+  lines_data <- data %>% 
+    unnest_tokens(line, Lyrics, token = "lines") %>% 
+    filter(str_detect(line, word))
+  
+  print(paste(nrow(lines_data), "lines with the word", word))
+  
+  return(lines_data)
+}
+
+count_lines_with_word(ts_lyrics, "hello")
+count_lines_with_word(ts_lyrics, "goodbye")
+
+```
+
+
 ### 2B
+
+```{r}
+b_lyrics %>% 
+  filter(str_detect(line, "hello"))
+
+
+b_lyrics %>% 
+  filter(str_detect(line, "goodbye"))
+```
+
 
 ### 2C
 
