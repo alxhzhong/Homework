@@ -14,6 +14,7 @@ library(tidyverse)
 library(tidytuesdayR)
 library(here)
 library(tidytext)
+library(wordcloud)
 ```
 
 # {.tabset}
@@ -130,7 +131,7 @@ sales %>%
 
 ```{r}
 sales %>% 
-  ggplot(aes(x = released, y = sales_mill, color = artist)) +
+  ggplot(aes(x = released, y = sales, color = artist)) +
   geom_point() +
   facet_wrap(~country, nrow = 3)
 ```
@@ -158,22 +159,135 @@ count_lines_with_word(ts_lyrics, "goodbye")
 
 
 ### 2B
-
+The Beyonce lyrics dataset already has individual lines separated out into rows, so we can just use `str_detect()` to count the number of lines with "hello" or "goodbye":
 ```{r}
 b_lyrics %>% 
   filter(str_detect(line, "hello"))
 
+b_lyrics %>% 
+  filter(str_detect(line, "hello")) %>% 
+  nrow()
+
 
 b_lyrics %>% 
-  filter(str_detect(line, "goodbye"))
+  filter(str_detect(line, "goodbye")) 
+
+
+b_lyrics %>% 
+  filter(str_detect(line, "goodbye")) %>% 
+  nrow()
 ```
 
 
 ### 2C
 
+```{r}
+data(stop_words)
+
+bing_sent <- get_sentiments("bing")
+
+b_words <- b_lyrics %>% 
+  unnest_tokens(word, line, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = TRUE) %>% 
+  inner_join(bing_sent) %>% 
+  head(25)
+
+b_words
+```
+
+Now, let's create a bar plot of these top 25 words used by Beyonce:
+
+```{r}
+b_words %>% 
+  mutate(word = fct_reorder(word, n)) %>% 
+  ggplot(aes(x = n, y = word, fill = sentiment)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Sentiments of top-25 most-used words in Beyonce lyrics",
+    subtitle = "Beyonce's most-used lyrics had equally positive and negative sentiments",
+    x = "Number of instances",
+    y = "Word",
+    caption = "By Alex Zhong (2023)\n Data from Tidy Tuesday"
+  )
+  
+```
+
+And a word cloud:
+
+```{r}
+b_words %>% 
+  mutate(
+    color = case_when(
+      sentiment == "negative" ~ "#c51b7d",
+      sentiment == "positive" ~ "#4d9221"
+    )
+  ) %>% 
+  with(wordcloud(word, n, colors = color, ordered.colors = TRUE))
+```
+
+
 ### 2D
+Now, let's perform the same analysis with Taylor Swift's lyrics:
+
+```{r}
+ts_words <- ts_lyrics %>% 
+  unnest_tokens(word, Lyrics, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = TRUE) %>% 
+  inner_join(bing_sent) %>% 
+  head(25)
+
+ts_words
+```
+
+Plotting these words in a bar plot,
+```{r}
+ts_words %>% 
+  mutate(word = fct_reorder(word, n)) %>% 
+  ggplot(aes(x = n, y = word, fill = sentiment)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Sentiments of top-25 most-used words in Taylor Swift lyrics",
+    subtitle = "Swift's most-used lyrics are more negative than positive",
+    x = "Number of instances",
+    y = "Word",
+    caption = "By Alex Zhong (2023)\n Data from Tidy Tuesday"
+  )
+```
+
+And a word cloud:
+
+```{r}
+ts_words %>% 
+  mutate(
+    color = case_when(
+      sentiment == "negative" ~ "#c51b7d",
+      sentiment == "positive" ~ "#4d9221"
+    )
+  ) %>% 
+  with(wordcloud(word, n, colors = color, ordered.colors = TRUE))
+```
 
 ### 2E
+
+```{r}
+afinn_sent <- get_sentiments("afinn")
+
+ts_avgsent <- ts_lyrics %>% 
+  unnest_tokens(word, Lyrics, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  group_by(Album) %>% 
+  count(word) %>% 
+  inner_join(afinn_sent) %>% 
+  summarize(
+    avg_sentiment = sum(n * value) / sum(n)
+  )
+
+ts_avgsent
+```
+
+
 
 
 
