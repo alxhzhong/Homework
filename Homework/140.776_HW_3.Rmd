@@ -9,7 +9,12 @@ date: "`r Sys.Date()`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# {.tabset}
+
+## Setup
+
 ```{r warning = FALSE, message = FALSE}
+# load needed packages
 library(tidyverse)
 library(tidytuesdayR)
 library(here)
@@ -17,9 +22,7 @@ library(tidytext)
 library(wordcloud)
 ```
 
-# {.tabset}
 
-## Setup
 ```{r}
 if (!file.exists(here("data", "b_lyrics.RDS"))) {
     b_lyrics <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/beyonce_lyrics.csv")
@@ -38,7 +41,7 @@ raw_sales <- readRDS(here("data", "sales.RDS"))
 ```
 
 
-## Part 1 {.tabset}
+## Part 1 {.tabset .active}
 
 ### 1A
 Taking a look at the `released` column, it seems that some of the release dates have some extra unnecessary information in the format (US/UK)[##].
@@ -77,6 +80,8 @@ sales
 ```
 
 ### 1B
+Next, let's look at the newest and oldest albums, as well as the median time between album releases.
+
 ```{r}
 sales %>% 
   filter(country == "US") %>% 
@@ -94,7 +99,13 @@ sales %>%
   )
 ```
 
+Beyonce's oldest album was released in 2003, and her newest album was released in 2016. Her median time between album releases is 2 years.
+
+Taylor Swift's oldest album was released in 2006 and her newest album was released in 2019. Her median time between album releases in 1.5 years.
+
 ### 1C
+
+To compare each artist's breakdown in sales by market, let's make a percent stacked barchart.
 
 ```{r}
 sales %>% 
@@ -103,15 +114,19 @@ sales %>%
   ggplot(aes(x = artist, y = total_sales, fill = country)) +
   geom_bar(position = "fill", stat = "identity") +
   scale_y_continuous(labels = scales::percent) +
+  scale_fill_discrete(labels = c("UK", "US", "Worldwide")) +
   theme_classic() +
   labs(
     title = "Studio album sales breakdown by artist",
-    subtitle = "Proportionally, Beyoncé makes more from worldwide and UK sales, \nwhile Taylor Swift makes more from US sales",
-    y = "% of studio album sales"
+    subtitle = "Proportionally, Beyonce makes more from worldwide and UK sales, \n while Taylor Swift makes more from US sales",
+    y = "% of studio album sales",
+    caption = "By Alex Zhong (2023)\n Data from Tidy Tuesday"
   )
 ```
 
 ### 1D
+
+It seems that the worldwide market makes up a sizeable chunk of sales for both artists. Let's now compare worldwide sales between Beyonce and Taylor Swift by album.
 
 ```{r}
 sales %>% 
@@ -121,25 +136,41 @@ sales %>%
   geom_bar(stat = "identity") +
   theme_classic() +
   labs(
-    x = "Global album sales (in millions of dollars)",
-    y = "Album title"
+    title = "Beyonce and Taylor Swift's Albums by Global Sales",
+    subtitle = "Fearless, Dangerously in Love, and 1989 top global sales",
+    x = "Global album sales \n (in millions of dollars)",
+    y = "Album title",
+    caption = "By Alex Zhong (2023)\n Data from Tidy Tuesday"
   )
 ```
 
 
 ### 1E
 
+Finally, let's see how sales in all three markets for both artists change over time.
+
 ```{r}
+country.labs = c("UK", "US", "Worldwide")
+names(country.labs) = c("UK", "US", "WW")
+
 sales %>% 
   ggplot(aes(x = released, y = sales, color = artist)) +
   geom_point() +
-  facet_wrap(~country, nrow = 3)
+  facet_wrap(~country, nrow = 3, labeller = labeller(country = country.labs)) +
+  labs(
+    title = "Beyonce and Taylor Swift's Album Sales by Market over Time",
+    subtitle = "Swift grosses more in US and worldwide markets than Beyonce",
+    x = "Release Date",
+    y = "Sales (in millions of dollars)",
+    caption = "By Alex Zhong (2023)\n Data from Tidy Tuesday"
+  )
 ```
 
 
 ## Part 2 {.tabset}
 
 ### 2A
+Let's see how many lines from Taylor Swift's lyrics contain the words "hello" and goodbye".
 
 ```{r}
 count_lines_with_word = function(data, word){
@@ -160,26 +191,30 @@ count_lines_with_word(ts_lyrics, "goodbye")
 
 ### 2B
 The Beyonce lyrics dataset already has individual lines separated out into rows, so we can just use `str_detect()` to count the number of lines with "hello" or "goodbye":
+
 ```{r}
 b_lyrics %>% 
   filter(str_detect(line, "hello"))
 
 b_lyrics %>% 
   filter(str_detect(line, "hello")) %>% 
-  nrow()
+  nrow() %>% 
+  paste("lines with the word 'hello'")
 
 
 b_lyrics %>% 
   filter(str_detect(line, "goodbye")) 
 
-
 b_lyrics %>% 
   filter(str_detect(line, "goodbye")) %>% 
-  nrow()
+  nrow() %>% 
+  paste("lines with the word 'goodbye'")
 ```
 
 
 ### 2C
+
+Now, let's look at the sentiments of Beyonce's top 25 most-used words in her lyrics.
 
 ```{r}
 data(stop_words)
@@ -253,7 +288,7 @@ ts_words %>%
     x = "Number of instances",
     y = "Word",
     caption = "By Alex Zhong (2023)\n Data from Tidy Tuesday"
-  )
+  ) 
 ```
 
 And a word cloud:
@@ -271,15 +306,15 @@ ts_words %>%
 
 ### 2E
 
-```{r}
-afinn_sent <- get_sentiments("afinn")
+Using the "afinn" lexicon, let's calculate the average sentiment for Taylor Swift's albums. 
 
+```{r}
 ts_avgsent <- ts_lyrics %>% 
   unnest_tokens(word, Lyrics, token = "words") %>% 
   anti_join(stop_words) %>% 
   group_by(Album) %>% 
   count(word) %>% 
-  inner_join(afinn_sent) %>% 
+  inner_join(get_sentiments("afinn")) %>% 
   summarize(
     avg_sentiment = sum(n * value) / sum(n)
   )
@@ -287,9 +322,28 @@ ts_avgsent <- ts_lyrics %>%
 ts_avgsent
 ```
 
+Next, we'll join this average sentiment data with sales and release date data:
 
+```{r}
+sales %>% 
+  filter(country == "US") %>% 
+  select(title, sales, released) %>% 
+  inner_join(ts_avgsent, by = join_by(title == Album)) %>% 
+  ggplot(aes(x = released, y = avg_sentiment, size = sales)) +
+  geom_point() +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  labs(
+    title = "Taylor Swift's Average Album Sentiment and US Sales by Release Date",
+    subtitle = "Swift's album lyrics have become more negative over time",
+    x = "Release Date",
+    y = "Average Sentiment Score",
+    size = "US Sales \n(millions of dollars)",
+    caption = "By Alex Zhong (2023)\n Data from Tidy Tuesday"
+  ) +
+  theme_classic()
+```
 
-
+From the graph above, we can see a generally negative trend of average sentiment score over time. This means that Taylor Swift's lyrics have (on average) become more negative over time. The most notable exception to this trend is her most recent album with sales information, "Lover", which has a much higher average sentiment score than her previous album.
 
 
 
