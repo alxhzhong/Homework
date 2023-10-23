@@ -345,6 +345,11 @@ sales %>%
 
 From the graph above, we can see a generally negative trend of average sentiment score over time. This means that Taylor Swift's lyrics have (on average) become more negative over time. The most notable exception to this trend is her most recent album with sales information, "Lover", which has a much higher average sentiment score than her previous album.
 
+## R Session Info
+```{r}
+options(width = 120)
+sessionInfo()
+```
 
 
 
